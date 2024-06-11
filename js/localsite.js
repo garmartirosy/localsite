@@ -105,7 +105,8 @@ var local_app = local_app || (function(module) {
             let theroot = "https://model.earth";
             // TO DO: Check if localsite.js include div contains "https://model.earth" (non-relative)
             
-            if (location.host.indexOf('localhost') >= 0 || location.host.indexOf('127.0.0.1') >= 0) {
+            // Currently assuming all other ports don't have localsite folder.
+            if ((location.host.indexOf('localhost') >= 0 && location.port == "8887") || location.host.indexOf('127.0.0.1') >= 0) {
               theroot = "";
             }
             return (theroot);
@@ -841,20 +842,37 @@ loadScript(theroot + 'js/jquery.min.js', function(results) {
       });
 
       $(document).on("click", ".uOut", function(event) {
-        console.log(".uOut clicked")
-
-        // Keeping it real simple
+        console.log(".uOut clicked");
         Cookies.remove('at_a');
-        window.location = "../"
+        window.location = "/"
         return;
 
         //event.stopPropagation();
       });
       $(document).on("click", ".uIn", function(event) {
-        window.location = "/explore/menu/login/azure/";
-        return;
+        var email = $('#input123').val();
+        if (isValidEmail(email)) {
+          localStorage.email = email;
+          if (isValid(email)) {
+            window.location = "/explore/menu/login/azure/";
+            return;
+          } else {
+            window.location = "/";
+          }
+        } else {
+          alert("email required");
+          $("#input123").focus();
+        }
       });
-      
+      function isValidEmail(email) {
+          var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(email);
+      }
+      function isValid(email) {
+          var vDom = ['QGVvcmdpYS5vcmc=', 'QGdhYXJ0cy5vcmc='];
+          var eDom = email.split('@')[1]; for (var i = 0; i < vDom.length; i++) {if (eDom === atob(vDom[i])) {return true;}} return false;
+      }
+
       // Load when body div becomes available, faster than waiting for all DOM .js files to load.
       waitForElm('#bodyloaded').then((elm) => {
        consoleLog("#bodyloaded becomes available");
@@ -1907,6 +1925,7 @@ function showSearchFilter() {
 }
 function closeSideTabs() {
   console.log("closeSideTabs()");
+  updateHash({"sidetab":""});
   $("#sideTabs").hide();
   $("body").removeClass("bodyRightMargin");
   if (!$('body').hasClass('bodyLeftMargin')) {
@@ -2029,7 +2048,42 @@ function waitForElmKickoff(selector, resolve) {
   });
 }
 
+function loadText(pagePath, divID, target) { // For html and yaml
+  const theDivID = (divID.startsWith('#') || divID.startsWith('.')) ? divID : '#' + divID;
+  waitForElm(theDivID).then((elm) => {
+    const theDiv = document.getElementById(divID);
+    //theDiv.load(pagePath, function( response, status, xhr ) {
+    //  loadIntoDiv(pagePath,theDivID,response,callback);
+    //});
 
+
+    fetch(pagePath)
+        .then(function(response) {
+            // Check if the response is successful
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        })
+        .then(function(data) {
+            // Insert the content into the div
+            theDiv.innerHTML = data;
+
+            // loadIntoDiv(pagePath,theDivID,response,callback);
+
+            // Execute the callback function
+            //callback(data, 'success', null);
+        })
+        .catch(function(error) {
+            // Handle any errors
+            callback(null, 'error', error);
+        });
+
+
+
+  });
+}
 function loadMarkdown(pagePath, divID, target, attempts, callback) {
   if (typeof attempts === 'undefined') {
     attempts = 1;
@@ -2133,22 +2187,20 @@ function loadMarkdown(pagePath, divID, target, attempts, callback) {
         html = metadata + html;
         */
       }
-      //document.getElementById(divID).innerHTML = html; // Overwrites
 
       // Append rather than overwrite
-      var thediv = document.getElementById(divID);
-      loadIntoDiv(pageFolder,divID,thediv,html,0,callback);
+      
+      loadIntoDiv(pageFolder,divID,html,callback);
 
     });
   });
   });
   //});
 }
-function loadIntoDiv(pageFolder,divID,thediv,html,attempts,callback) {
-  //if (thediv) {
-  // TO DO: Append # if not in divID
-  waitForElm("#" + divID).then((elm) => {
-    //alert("loadIntoDiv attempts: " + attempts);
+function loadIntoDiv(pageFolder,divID,html,callback) {
+  const theDivID = (divID.startsWith('#') || divID.startsWith('.')) ? divID : '#' + divID;
+  waitForElm(theDivID).then((elm) => {
+    const thediv = document.getElementById(divID);
     var newcontent = document.createElement('div');
     newcontent.innerHTML = html;
     while (newcontent.firstChild) {
@@ -2213,19 +2265,6 @@ function loadIntoDiv(pageFolder,divID,thediv,html,attempts,callback) {
 
     if(callback) callback();
   });
-  /*
-  } else { // Try again
-    attempts = attempts + 1;
-    if (attempts < 100) {
-      setTimeout( function() {
-        thediv = document.getElementById(divID);
-        loadIntoDiv(pageFolder,divID,thediv,html,attempts,callback);
-      }, 100 );
-    } else {
-      console.log("ALERT: " + divID + " not available in page for showdown to insert text after " + attempts + " attempts.");
-    }
-  }
-  */
 }
 
 /* Allows map to remove selected shapes when backing up. */
@@ -2896,5 +2935,12 @@ function getSitePreview(url, divID) {
         }
     });
 }
-
+function isValidJSON(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 consoleLog("end localsite");

@@ -816,7 +816,7 @@ function showSideTabs() {
     consoleLog("showSideTabs() in navigation.js");
     waitForElm('#sideTabs').then((elm) => {
         let hash = getHash();
-        
+
         if (hash.sidetab) {
             $('body').addClass('bodyRightMargin'); // Creates margin on right for fixed sidetabs.
             $('body').addClass('mobileView');
@@ -849,6 +849,7 @@ function showSideTabs() {
         } else {
             $('body').removeClass('bodyRightMargin'); // Creates margin on right for fixed sidetabs.
             $('body').removeClass('mobileView');
+            updateHash({"sidetab":""});
             $("#sideTabs").hide();
         }
     });
@@ -2224,7 +2225,7 @@ function renderMapShapeAfterPromise(whichmap, hash, geoview, attempts) {
                 }
                 // National
                 // Hover over map
-                //this._div.innerHTML = "<h4>Zip code</h4>" + (props ? props.zip + '</br>' + props.name + ' ' + props.state + '</br>' : "Select Locations")
+                //this._div.innerHTML = "<h4>Zip code</h4>" + (props ? props.zip + '<br>' + props.name + ' ' + props.state + '<br>' : "Select Locations")
                 
                 // CSS resides in map.css at .leaflet-top > .info
                 if (props && props.COUNTYFP) {
@@ -2238,7 +2239,7 @@ function renderMapShapeAfterPromise(whichmap, hash, geoview, attempts) {
 
                 // To fix if using state - id is not defined
                 // Also, other state files may need to have primary node renamed to "data"
-                //this._div.innerHTML = "<h4>Zip code</h4>" + (1==1 ? id + '</br>' : "Hover over map")
+                //this._div.innerHTML = "<h4>Zip code</h4>" + (1==1 ? id + '<br>' : "Hover over map")
             }
             if (map) {
               info.addTo(map);
@@ -3601,12 +3602,15 @@ if (modelpath == "./") {
 }
 //var modelroot = ""; // For links that start with /
 
+// 2024 June - Override everything above to allow for other localsite ports not having local files.
+modelpath = local_app.modelearth_root();
+
 if(location.host.indexOf('localhost') < 0 && location.host.indexOf('model.') < 0 && location.host.indexOf('neighborhood.org') < 0) { // When not localhost or other site that has a fork of io and community.
     // To do: allow "Input-Output Map" link in footer to remain relative.
-    modelpath = "https://model.earth/" + modelpath; // Avoid - use local_app.modelearth_root() instead - Check if/why used for #headerSiteTitle and hamburger menu
-    //modelroot = "https://model.earth"; // For embeds
+    //modelpath = "https://model.earth/" + modelpath; // Avoid - use local_app.modelearth_root() instead - Check if/why used for #headerSiteTitle and hamburger menu
+    ////modelroot = "https://model.earth"; // For embeds
 }
-console.log("modelpath " + modelpath);
+consoleLog("modelpath " + modelpath);
 
 
 function waitForVariableNav(variable, callback) { // Declare variable using var since let will not be detected.
@@ -3870,10 +3874,10 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
         showLeftIcon = true;
         $(".siteTitleShort").text("Civic Tech Atlanta");
         param.titleArray = ["civic tech","atlanta"]
-        param.headerLogo = "<a href='https://codeforatlanta.org'><img src='/community/img/logo/orgs/civic-tech-atlanta-text.png' style='width:186px;padding-top:8px'></a>";
+        param.headerLogo = "<a href='https://codeforatlanta.org'><img src='" + local_app.modelearth_root() + "/community/img/logo/orgs/civic-tech-atlanta-text.png' style='width:186px;padding-top:8px'></a>";
         
         localsiteTitle = "Civic Tech Atlanta";
-        changeFavicon("/localsite/img/logo/apps/neighborhood.png")
+        changeFavicon(local_app.modelearth_root() + "/localsite/img/logo/apps/neighborhood.png")
         showClassInline(".neighborhood");
         earthFooter = true;
         showClassInline(".georgia"); // Temp side nav
@@ -3896,10 +3900,10 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
         $(".siteTitleShort").text("Model Georgia");
         param.titleArray = [];
         console.log("local_app.localsite_root() " + local_app.localsite_root()); // https://model.earth was in here: https://map.georgia.org/localsite/map/#show=recyclers
-        param.headerLogo = "<a href='https://georgia.org'><img src='/localsite/img/logo/states/GA.png' style='width:140px;padding-top:4px'></a>";
-        param.headerLogoNoText = "<a href='https://georgia.org'><img src='/localsite/img/logo/states/GA-notext.png' style='width:50px;padding-top:0px;margin-top:-1px'></a>";
+        param.headerLogo = "<a href='https://georgia.org'><img src='" + local_app.modelearth_root() + "/localsite/img/logo/states/GA.png' style='width:140px;padding-top:4px'></a>";
+        param.headerLogoNoText = "<a href='https://georgia.org'><img src='" + local_app.modelearth_root() + "/localsite/img/logo/states/GA-notext.png' style='width:50px;padding-top:0px;margin-top:-1px'></a>";
         localsiteTitle = "Georgia.org";
-        changeFavicon("/localsite/img/logo/states/GA-favicon.png");
+        changeFavicon(local_app.modelearth_root() + "/localsite/img/logo/states/GA-favicon.png");
         if (location.host.indexOf("locations.pages.dev") >= 0 || location.host.indexOf("locations.georgia.org") >= 0) {
             showClassInline(".acct");
             showClassInline(".garesource");
@@ -3911,7 +3915,7 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
         }
         $('#headerOffset').css('display', 'block'); // Show under site's Drupal header
         if (location.host.indexOf('localhost') >= 0) {
-            showClassInline(".earth");
+            //showClassInline(".earth"); // Show extra side nav
             earthFooter = true;
         }
         
@@ -3920,17 +3924,17 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
         showLeftIcon = true;
         $(".siteTitleShort").text("Neighborhood Modeling");
         param.titleArray = ["neighbor","hood"]
-        param.headerLogoSmall = "<img src='/localsite/img/logo/apps/neighborhood.png' style='width:40px;opacity:0.7'>"
+        param.headerLogoSmall = "<img src='" + local_app.modelearth_root() + "/localsite/img/logo/apps/neighborhood.png' style='width:40px;opacity:0.7'>"
         localsiteTitle = "Neighborhood.org";
-        changeFavicon("/localsite/img/logo/apps/neighborhood.png")
+        changeFavicon(local_app.modelearth_root() + "/localsite/img/logo/apps/neighborhood.png")
         showClassInline(".neighborhood");
         earthFooter = true;
     } else if (!Array.isArray(param.titleArray) && (location.host.indexOf("democracy.lab") >= 0)) {
         showLeftIcon = true;
         $(".siteTitleShort").text("Democracy Lab");
 
-        param.headerLogo = "<img src='/localsite/img/logo/partners/democracy-lab.png' style='width:190px;margin-top:15px'>";
-        param.headerLogoSmall = "<img src='/localsite/img/logo/partners/democracy-lab-icon.jpg' style='width:32px;margin:4px 8px 0 0'>";
+        param.headerLogo = "<img src='" + local_app.modelearth_root() + "/localsite/img/logo/partners/democracy-lab.png' style='width:190px;margin-top:15px'>";
+        param.headerLogoSmall = "<img src='" + local_app.modelearth_root() + "/localsite/img/logo/partners/democracy-lab-icon.jpg' style='width:32px;margin:4px 8px 0 0'>";
         showClassInline(".dlab'");
         earthFooter = true;
     } else if (!Array.isArray(param.titleArray) && !param.headerLogo) {
@@ -4345,7 +4349,8 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
         if (param["showfooter"] && param["showfooter"] == "false") {
         } else if (earthFooter || param.footer) {
             var footerClimbpath = "";
-            let footerFile = modelpath + "../localsite/footer.html"; // modelpath remains relative for site desgnated above as having a local copy of io and community.
+            // Had ..
+            let footerFile = modelpath + "/localsite/footer.html"; // modelpath remains relative for site desgnated above as having a local copy of io and community.
             if (param.footer) {
                 footerFile = param.footer; // Custom
 
@@ -4383,8 +4388,8 @@ function applyNavigation() { // Called by localsite.js so local_app path is avai
             // Wait for header to load?
 
             let targetColumn = "#navcolumn";
-            $(targetColumn).load( modelpath + "../localsite/nav.html", function( response, status, xhr ) {
-
+            // Had ..
+            $(targetColumn).load( modelpath + "/localsite/nav.html", function( response, status, xhr ) {
                 activateSideColumn();
             });
         }
